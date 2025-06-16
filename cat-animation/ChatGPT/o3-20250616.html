@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cat Walk Demo</title>
+
+    <style>
+        /* Layout basics */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            /* keeps scrollbars away during the walk */
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, sans-serif;
+        }
+
+        /* The button */
+        #walkBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.6rem 1.1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #ffb347;
+            color: #222;
+            transition: filter 0.2s;
+        }
+
+        #walkBtn:hover {
+            filter: brightness(1.1);
+        }
+
+        /* The “cat” (using an emoji for zero assets) */
+        #cat {
+            position: absolute;
+            left: -140px;
+            /* start fully off-screen */
+            top: 60%;
+            /* walk a bit below centre */
+            translate: 0 -50%;
+            /* perfect vertical centring */
+            font-size: 6rem;
+            /* make it big enough */
+            opacity: 0;
+            /* invisible until animation starts */
+            pointer-events: none;
+            /* clicks pass through */
+        }
+
+        /* Keyframes: left → right in 3 s */
+        @keyframes walk {
+            0% {
+                left: -140px;
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            /* stay visible almost to the end */
+            100% {
+                left: 100vw;
+                opacity: 0;
+            }
+        }
+
+        /* Active state triggered by JS */
+        .walking {
+            animation: walk 3s linear forwards;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="walkBtn">Walk the cat</button>
+    <div id="cat">🐈‍⬛</div>
+
+    <script>
+        const btn = document.getElementById('walkBtn');
+        const cat = document.getElementById('cat');
+
+        btn.addEventListener('click', () => {
+            /*  If the animation is still running, restart it cleanly   */
+            cat.classList.remove('walking');
+            void cat.offsetWidth;      // force reflow
+            cat.classList.add('walking');
+        });
+    </script>
+</body>
+
+</html>

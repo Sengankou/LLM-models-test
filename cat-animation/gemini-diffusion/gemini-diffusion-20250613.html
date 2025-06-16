@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Walking Animation</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            /* Prevent scrollbars during animation */
+        }
+
+        #cat-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            /* Adjust height as needed */
+            overflow: hidden;
+            /* Hide cat when off-screen */
+            display: none;
+            /* Initially hide the container */
+        }
+
+        #cat {
+            position: absolute;
+            left: 0;
+            /* Start off-screen to the left */
+            bottom: 20px;
+            /* Position slightly above the bottom */
+            width: 100px;
+            /* Adjust cat size */
+            height: 100px;
+            /* Adjust cat size */
+            background-image: url('https://via.placeholder.com/100x100/FF0000/FFFFFF?text=Cat');
+            /* Replace with your cat image URL */
+            background-size: cover;
+            animation: walk 3s linear forwards;
+            /* Define the animation */
+        }
+
+        @keyframes walk {
+            from {
+                left: -100px;
+                /* Start off-screen to the left */
+            }
+
+            to {
+                left: calc(100% + 100px);
+                /* End off-screen to the right (plus cat width) */
+            }
+        }
+
+        #start-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            z-index: 1;
+            /* Ensure button is above the cat */
+        }
+
+        #start-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="cat-container">
+        <div id="cat"></div>
+    </div>
+
+    <button id="start-button">Start Cat Walk</button>
+
+    <script>
+        const startButton = document.getElementById('start-button');
+        const catContainer = document.getElementById('cat-container');
+        const cat = document.getElementById('cat');
+
+        startButton.addEventListener('click', () => {
+            // Show the cat container
+            catContainer.style.display = 'block';
+
+            // Reset cat position and start animation
+            cat.style.left = '-100px';
+            cat.style.animation = 'none'; // Stop previous animation
+            void cat.offsetWidth; // Trigger reflow to restart animation
+            cat.style.animation = 'walk 3s linear forwards'; // Start the animation again
+
+            // Hide the cat container after 3 seconds
+            setTimeout(() => {
+                catContainer.style.display = 'none';
+            }, 3000);
+        });
+    </script>
+
+</body>
+
+</html>

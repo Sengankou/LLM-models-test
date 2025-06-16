@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-means / K-medoids Visualization</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+
+        .point {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .medoid {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid black;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+    <h1 class="text-2xl font-bold mb-4 text-center">K-means / K-medoids Visualization</h1>
+
+    <div class="flex justify-center gap-4 mb-4">
+        <div class="flex items-center">
+            <label for="kValue" class="mr-2">K:</label>
+            <input type="number" id="kValue" value="3" min="2" max="20" class="w-20 border rounded px-2 py-1">
+        </div>
+        <button id="randomData" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Generate Random Data
+        </button>
+        <button id="clearData" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+            Clear Data
+        </button>
+        <div class="flex items-center">
+            <input type="checkbox" id="kmedoidsToggle" class="mr-2">
+            <label for="kmedoidsToggle">K-medoids</label>
+        </div>
+        <button id="runAlgorithm" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Run Algorithm
+        </button>
+    </div>
+
+    <div class="flex justify-center mb-4">
+        <canvas id="clusteringCanvas" width="600" height="500"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('clusteringCanvas');
+        const ctx = canvas.getContext('2d');
+        const kValueInput = document.getElementById('kValue');
+        const randomDataButton = document.getElementById('randomData');
+        const clearDataButton = document.getElementById('clearData');
+        const kmedoidsToggle = document.getElementById('kmedoidsToggle');
+        const runAlgorithmButton = document.getElementById('runAlgorithm');
+
+        let dataPoints = [];
+        let centroids = [];
+        let useMedoids = false;
+
+        const colors = [
+            '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+            '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+        ];
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw data points
+            dataPoints.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = colors[point.cluster % colors.length];
+                ctx.fill();
+                ctx.closePath();
+            });
+
+            // Draw centroids/medoids
+            centroids.forEach((centroid, index) => {
+                ctx.beginPath();
+                if (useMedoids) {
+                    ctx.arc(centroid.x, centroid.y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = colors[index % colors.length];
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    ctx.arc(centroid.x, centroid.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = colors[index % colors.length];
+                    ctx.fill();
+                }
+                ctx.closePath();
+            });
+        }
+
+        function getDistance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        }
+
+        function initializeCentroids() {
+            const k = parseInt(kValueInput.value);
+            if (dataPoints.length < k) {
+                alert("Not enough data points for the selected K.");
+                centroids = [];
+                return;
+            }
+
+            centroids = [];
+            const indices = new Set();
+            while (indices.size < k) {
+                const randomIndex = Math.floor(Math.random() * dataPoints.length);
+                indices.add(randomIndex);
+            }
+            indices.forEach(index => {
+                centroids.push({ ...dataPoints[index] });
+            });
+        }
+
+        function assignPointsToCentroids() {
+            dataPoints.forEach(point => {
+                let minDistance = Infinity;
+                let closestCentroid = -1;
+                centroids.forEach((centroid, index) => {
+                    const distance = getDistance(point, centroid);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestCentroid = index;
+                    }
+                });
+                point.cluster = closestCentroid;
+            });
+        }
+
+        function updateCentroids() {
+            const k = parseInt(kValueInput.value);
+            const newCentroids = Array(k).fill(null).map(() => ({ x: 0, y: 0, count: 0 }));
+
+            dataPoints.forEach(point => {
+                if (point.cluster !== undefined && point.cluster !== -1) {
+                    newCentroids[point.cluster].x += point.x;
+                    newCentroids[point.cluster].y += point.y;
+                    newCentroids[point.cluster].count++;
+                }
+            });
+
+            for (let i = 0; i < k; i++) {
+                if (newCentroids[i].count > 0) {
+                    centroids[i].x = newCentroids[i].x / newCentroids[i].count;
+                    centroids[i].y = newCentroids[i].y / newCentroids[i].count;
+                } else {
+                    // If a cluster is empty, re-initialize its centroid randomly
+                    const randomIndex = Math.floor(Math.random() * dataPoints.length);
+                    centroids[i] = { ...dataPoints[randomIndex] };
+                }
+            }
+        }
+
+        function initializeMedoids() {
+            const k = parseInt(kValueInput.value);
+            if (dataPoints.length < k) {
+                alert("Not enough data points for the selected K.");
+                centroids = [];
+                return;
+            }
+
+            centroids = [];
+            const indices = new Set();
+            while (indices.size < k) {
+                const randomIndex = Math.floor(Math.random() * dataPoints.length);
+                indices.add(randomIndex);
+            }
+            indices.forEach(index => {
+                centroids.push({ ...dataPoints[index] });
+            });
+        }
+
+        function assignPointsToMedoids() {
+            dataPoints.forEach(point => {
+                let minDistance = Infinity;
+                let closestMedoid = -1;
+                centroids.forEach((medoid, index) => {
+                    const distance = getDistance(point, medoid);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestMedoid = index;
+                    }
+                });
+                point.cluster = closestMedoid;
+            });
+        }
+
+        function updateMedoids() {
+            const k = parseInt(kValueInput.value);
+            const clusters = Array(k).fill(null).map(() => []);
+
+            dataPoints.forEach(point => {
+                if (point.cluster !== undefined && point.cluster !== -1) {
+                    clusters[point.cluster].push(point);
+                }
+            });
+
+            for (let i = 0; i < k; i++) {
+                if (clusters[i].length > 0) {
+                    let minTotalDistance = Infinity;
+                    let bestMedoid = null;
+
+                    clusters[i].forEach(p1 => {
+                        let totalDistance = 0;
+                        clusters[i].forEach(p2 => {
+                            totalDistance += getDistance(p1, p2);
+                        });
+                        if (totalDistance < minTotalDistance) {
+                            minTotalDistance = totalDistance;
+                            bestMedoid = p1;
+                        }
+                    });
+                    if (bestMedoid) {
+                        centroids[i] = { ...bestMedoid };
+                    }
+                } else {
+                    // If a cluster is empty, re-initialize its medoid randomly
+                    const randomIndex = Math.floor(Math.random() * dataPoints.length);
+                    centroids[i] = { ...dataPoints[randomIndex] };
+                }
+            }
+        }
+
+        function runClustering() {
+            const k = parseInt(kValueInput.value);
+            if (dataPoints.length < k) {
+                alert("Not enough data points for the selected K.");
+                return;
+            }
+
+            if (useMedoids) {
+                initializeMedoids();
+            } else {
+                initializeCentroids();
+            }
+
+            let iterations = 0;
+            const maxIterations = 100;
+            let changed = true;
+
+            while (changed && iterations < maxIterations) {
+                let oldCentroids = centroids.map(c => ({ ...c }));
+
+                if (useMedoids) {
+                    assignPointsToMedoids();
+                    updateMedoids();
+                } else {
+                    assignPointsToCentroids();
+                    updateCentroids();
+                }
+
+                changed = false;
+                for (let i = 0; i < k; i++) {
+                    if (getDistance(oldCentroids[i], centroids[i]) > 0.1) { // Check for significant movement
+                        changed = true;
+                        break;
+                    }
+                }
+                iterations++;
+            }
+            drawCanvas();
+        }
+
+        function generateRandomData() {
+            dataPoints = [];
+            const numPoints = 100;
+            for (let i = 0; i < numPoints; i++) {
+                dataPoints.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    cluster: -1
+                });
+            }
+            centroids = [];
+            drawCanvas();
+        }
+
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            dataPoints.push({
+                x: x,
+                y: y,
+                cluster: -1
+            });
+            drawCanvas();
+        });
+
+        randomDataButton.addEventListener('click', generateRandomData);
+
+        clearDataButton.addEventListener('click', () => {
+            dataPoints = [];
+            centroids = [];
+            drawCanvas();
+        });
+
+        kmedoidsToggle.addEventListener('change', (event) => {
+            useMedoids = event.target.checked;
+            centroids = []; // Reset centroids/medoids when switching mode
+            drawCanvas();
+        });
+
+        runAlgorithmButton.addEventListener('click', runClustering);
+
+        // Initialize with some random data
+        generateRandomData();
+
+    </script>
+
+</body>
+
+</html>
