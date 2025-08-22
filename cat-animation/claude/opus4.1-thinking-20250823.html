@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walking Cat Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .button-container {
+            margin-bottom: 50px;
+            z-index: 10;
+        }
+
+        button {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:hover:before {
+            left: 100%;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .animation-area {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(0deg, #8B7355 0%, #A0826D 100%);
+            border-top: 3px solid #6B5B45;
+        }
+
+        .cat-container {
+            position: absolute;
+            bottom: 60px;
+            left: -150px;
+            opacity: 0;
+        }
+
+        .cat-container.walking {
+            animation: walkAcross 3s linear forwards;
+        }
+
+        @keyframes walkAcross {
+            0% {
+                left: -150px;
+                opacity: 1;
+            }
+            100% {
+                left: calc(100% + 50px);
+                opacity: 1;
+            }
+        }
+
+        .cat {
+            width: 100px;
+            height: 80px;
+            position: relative;
+            animation: bounce 0.3s infinite alternate;
+        }
+
+        .cat.walking {
+            animation: bounce 0.3s infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Cat body */
+        .cat-body {
+            width: 80px;
+            height: 50px;
+            background: linear-gradient(135deg, #FF8C00 0%, #FFA500 100%);
+            border-radius: 40px;
+            position: absolute;
+            top: 20px;
+            left: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Cat head */
+        .cat-head {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #FF8C00 0%, #FFA500 100%);
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            right: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Cat ears */
+        .cat-ear {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 15px solid #FF8C00;
+            position: absolute;
+            top: 10px;
+        }
+
+        .cat-ear.left {
+            right: 35px;
+            transform: rotate(-20deg);
+        }
+
+        .cat-ear.right {
+            right: 10px;
+            transform: rotate(20deg);
+        }
+
+        /* Cat eyes */
+        .cat-eye {
+            width: 6px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            position: absolute;
+            top: 25px;
+        }
+
+        .cat-eye.left {
+            right: 25px;
+        }
+
+        .cat-eye.right {
+            right: 12px;
+        }
+
+        /* Cat nose */
+        .cat-nose {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid #FF1493;
+            position: absolute;
+            top: 32px;
+            right: 18px;
+        }
+
+        /* Cat tail */
+        .cat-tail {
+            width: 40px;
+            height: 20px;
+            background: #FF8C00;
+            position: absolute;
+            top: 25px;
+            left: -10px;
+            border-radius: 20px 0 0 20px;
+            transform-origin: right center;
+            animation: wag 0.5s infinite alternate;
+        }
+
+        @keyframes wag {
+            0% {
+                transform: rotate(-10deg);
+            }
+            100% {
+                transform: rotate(10deg);
+            }
+        }
+
+        /* Cat legs */
+        .cat-leg {
+            width: 8px;
+            height: 20px;
+            background: #FF8C00;
+            position: absolute;
+            bottom: -15px;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .cat-leg.front-left {
+            left: 55px;
+            animation: walk-front 0.3s infinite alternate;
+        }
+
+        .cat-leg.front-right {
+            left: 70px;
+            animation: walk-back 0.3s infinite alternate;
+        }
+
+        .cat-leg.back-left {
+            left: 20px;
+            animation: walk-front 0.3s infinite alternate;
+        }
+
+        .cat-leg.back-right {
+            left: 35px;
+            animation: walk-back 0.3s infinite alternate;
+        }
+
+        @keyframes walk-front {
+            0% {
+                transform: rotate(-10deg);
+            }
+            100% {
+                transform: rotate(10deg);
+            }
+        }
+
+        @keyframes walk-back {
+            0% {
+                transform: rotate(10deg);
+            }
+            100% {
+                transform: rotate(-10deg);
+            }
+        }
+
+        /* Stripes on cat */
+        .stripe {
+            position: absolute;
+            background: rgba(139, 69, 19, 0.3);
+            border-radius: 10px;
+        }
+
+        .stripe1 {
+            width: 60px;
+            height: 4px;
+            top: 25px;
+            left: 15px;
+        }
+
+        .stripe2 {
+            width: 60px;
+            height: 4px;
+            top: 35px;
+            left: 15px;
+        }
+
+        .stripe3 {
+            width: 60px;
+            height: 4px;
+            top: 45px;
+            left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐾 Click to Make the Cat Walk! 🐾</h1>
+    
+    <div class="button-container">
+        <button onclick="startCatAnimation()">Make Cat Walk!</button>
+    </div>
+
+    <div class="animation-area">
+        <div class="ground"></div>
+        <div class="cat-container" id="catContainer">
+            <div class="cat" id="cat">
+                <div class="cat-body">
+                    <div class="stripe stripe1"></div>
+                    <div class="stripe stripe2"></div>
+                    <div class="stripe stripe3"></div>
+                </div>
+                <div class="cat-head">
+                    <div class="cat-ear left"></div>
+                    <div class="cat-ear right"></div>
+                    <div class="cat-eye left"></div>
+                    <div class="cat-eye right"></div>
+                    <div class="cat-nose"></div>
+                </div>
+                <div class="cat-tail"></div>
+                <div class="cat-leg front-left"></div>
+                <div class="cat-leg front-right"></div>
+                <div class="cat-leg back-left"></div>
+                <div class="cat-leg back-right"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function startCatAnimation() {
+            const catContainer = document.getElementById('catContainer');
+            const cat = document.getElementById('cat');
+            
+            // Remove classes if they exist (for replay)
+            catContainer.classList.remove('walking');
+            cat.classList.remove('walking');
+            
+            // Force reflow to restart animation
+            void catContainer.offsetWidth;
+            
+            // Add the walking class to start animation
+            catContainer.classList.add('walking');
+            cat.classList.add('walking');
+            
+            // Remove the class after animation completes (3 seconds)
+            setTimeout(() => {
+                catContainer.classList.remove('walking');
+                cat.classList.remove('walking');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
